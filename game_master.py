@@ -24,8 +24,8 @@ class GameMaster:
           player_name = input(f"Enter name for player {player + 1}: ")
           self.players.append(Player(player_name))
           collect_players = True
-      print("Players added successfully!")
-      print(self.players)
+      #print("Players added successfully!")
+      #print(self.players)
 
       ##################################################################################################################
 
@@ -34,7 +34,7 @@ class GameMaster:
       for player in range(self.num_players):
         deck.draw_card_from_deck(self.players[player], 3)
 
-      print("3 cards have been distributed to all players")
+      #print("3 cards have been distributed to all players")
 
       virus_game = True
 
@@ -43,22 +43,69 @@ class GameMaster:
         current_player_turn = self.players[current_player_idx]
 
         print(f"Player's turn: {current_player_turn}")
-        print("")
-
-        print(f"This is your current hand: {self.players[current_player_idx].player_hand}")
-        print("")
+        print(f"This is your current hand: {self.players[current_player_idx].player_hand}\n")
 
         print("These are the bodies: ")
         for player in range(self.num_players):
-          print(f"{self.players[player]}'s body: {self.players[player].player_body}")
+          print(f"{player + 1}. {self.players[player]}'s body: {self.players[player].player_body}")
         print("")
 
-        option = int(input("Select an option:\n 1. Play cards\n 2. Skip\n"))
+        option = int(input("Select an option:\n 1. Play a card\n 2. Discard a card\n 3. Next turn\n"))
 
         if option == 1:
-          print("Awesome! Let's play!")
-          break
+          if len(self.players[current_player_idx].player_hand) == 3:
+            card_idx = int(input("Select a card from your hand: "))
+            card_idx -= 1
+            card_selected = self.players[current_player_idx].player_hand[card_idx]
+            print(f"Card selected: {card_selected}")
+
+            body_idx_to_put_card = int(input("Type body's player number to place card on: "))
+            body_idx_to_put_card -= 1
+
+            self.players[body_idx_to_put_card].player_body.append(card_selected)
+            self.players[current_player_idx].player_hand.pop(card_idx)
+
+            cards_to_add = 3 - len(self.players[current_player_idx].player_hand)
+            deck.draw_card_from_deck(self.players[current_player_idx], cards_to_add)
+
+            self.total_turns += 1
+            continue
+
+          else:
+            print(f"This move is not possible. You have already discarded {3-len(self.players[current_player_idx].player_hand)} cards")
+            continue
+
         elif option == 2:
-          self.total_turns += 1
-          continue
+          if len(self.players[current_player_idx].player_hand) == 0:
+            print("Your turn is over, you have no cards left to discard")
+
+            # When a player's turn is over, this checks how many cards were played, and therefore how many are needed to
+            # be added to the player's hand
+            cards_to_add = 3 - len(self.players[current_player_idx].player_hand)
+            deck.draw_card_from_deck(self.players[current_player_idx], cards_to_add)
+
+            # This moves the turn to the next player
+            self.total_turns += 1
+            continue
+
+          else:
+            print(f"Total cards in discard pile: {len(deck.discard_pile)}")
+            card_idx = int(input("Select a card from your hand to discard: "))
+            card_idx -= 1
+            card_selected = self.players[current_player_idx].player_hand[card_idx]
+            print(f"Card selected to discard: {card_selected}")
+
+            deck.discard_pile.append(card_selected)
+            self.players[current_player_idx].player_hand.pop(card_idx)
+            continue
+
+        elif option == 3:
+          if len(self.players[current_player_idx].player_hand) == 3:
+            print("Invalid option. You have to make a move first")
+          else:
+            cards_to_add = 3 - len(self.players[current_player_idx].player_hand)
+            deck.draw_card_from_deck(self.players[current_player_idx], cards_to_add)
+
+            self.total_turns += 1
+            continue
 
