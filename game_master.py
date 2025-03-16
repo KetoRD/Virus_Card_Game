@@ -61,9 +61,46 @@ class GameMaster:
 
             body_idx_to_put_card = int(input("Type body's player number to place card on: "))
             body_idx_to_put_card -= 1
+            
+            if card_selected.card_type == "Organ":
+              if body_idx_to_put_card != current_player_idx:
+                print("You can only place an organ on your own body")
+                continue
+              
+            elif card_selected.card_type == "Medicine":
+              if body_idx_to_put_card != current_player_idx:
+                print("You can only place a medicine on your own body")
+                continue
+              
+            elif card_selected.card_type == "Virus":
+              if body_idx_to_put_card == current_player_idx:
+                print("You cannot place a virus on your own body")
+                continue
 
-            self.players[body_idx_to_put_card].player_body.append(card_selected)
-            self.players[current_player_idx].player_hand.pop(card_idx)
+            if card_selected.card_type == "Medicine":
+              for player_card in self.players[body_idx_to_put_card].player_body:
+                if player_card.color == card_selected.color:
+                  if player_card.num_virus_cards == 1:
+                    player_card.num_virus_cards -= 1
+                    self.players[current_player_idx].player_hand.pop(card_idx)
+                  elif player_card.num_virus_cards == 0:
+                    player_card.num_medicine_cards += 1
+                    self.players[current_player_idx].player_hand.pop(card_idx)
+                  
+            if card_selected.card_type == "Virus":
+              for player_card in self.players[body_idx_to_put_card].player_body:
+                if player_card.color == card_selected.color:
+                  if player_card.num_medicine_cards == 1:
+                    player_card.num_medicine_cards -= 1
+                    self.players[current_player_idx].player_hand.pop(card_idx)
+                  elif player_card.num_medicine_cards == 0:
+                    player_card.num_virus_cards += 1
+                    self.players[current_player_idx].player_hand.pop(card_idx)
+            
+            if card_selected.card_type != "Medicine" and card_selected.card_type != "Virus":
+              self.players[body_idx_to_put_card].player_body.append(card_selected)
+              self.players[current_player_idx].player_hand.pop(card_idx)
+              print("This is the error")
 
             cards_to_add = 3 - len(self.players[current_player_idx].player_hand)
             deck.draw_card_from_deck(self.players[current_player_idx], cards_to_add)
@@ -89,7 +126,6 @@ class GameMaster:
             continue
 
           else:
-            print(f"Total cards in discard pile: {len(deck.discard_pile)}")
             card_idx = int(input("Select a card from your hand to discard: "))
             card_idx -= 1
             card_selected = self.players[current_player_idx].player_hand[card_idx]
@@ -97,6 +133,7 @@ class GameMaster:
 
             deck.discard_pile.append(card_selected)
             self.players[current_player_idx].player_hand.pop(card_idx)
+            print(f"Total cards in discard pile: {len(deck.discard_pile)}")
             continue
 
         elif option == 3:
